@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.2](https://github.com/Kerwin-L/labelbee-1/compare/v1.4.0...v1.4.2) (2022-01-14)
+
+### [1.4.1](https://github.com/Kerwin-L/labelbee-1/compare/v1.4.0...v1.4.1) (2022-01-14)
+
 ## 1.4.0 (2022-01-14)
 
 
