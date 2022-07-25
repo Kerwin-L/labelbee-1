@@ -1,13 +1,15 @@
-import { useContext, useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { PointCloudContext, useRotate } from './PointCloudContext';
 import { cTool } from '@labelbee/lb-annotation';
 import { message } from 'antd';
+import { connect } from 'react-redux';
+import { aMapStateToProps, IAnnotationStateProps } from '@/store/annotation/map';
 
 const { EPolygonPattern } = cTool;
 
-const PointCloudListener = () => {
+const PointCloudListener: React.FC<IAnnotationStateProps> = ({ currentData }) => {
   const ptCtx = useContext(PointCloudContext);
-  const { updateRotate } = useRotate();
+  const { updateRotate } = useRotate({ currentData });
 
   useEffect(() => {
     const { topViewInstance } = ptCtx;
@@ -74,4 +76,4 @@ const PointCloudListener = () => {
   return null;
 };
 
-export default PointCloudListener;
+export default connect(aMapStateToProps)(PointCloudListener);

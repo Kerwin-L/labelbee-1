@@ -105,6 +105,11 @@ const PointCloud3D: React.FC<IAnnotationStateProps> = ({ currentData }) => {
         pointCloud.loadPCDFile(currentData.url);
       }
 
+      // Clear All Data
+      ptCtx.pointCloudBoxList.forEach((v) => {
+        pointCloud?.removeObjectByName(v.id);
+      });
+
       if (currentData.result) {
         const boxParamsList = PointCloudUtils.getBoxParamsFromResultList(currentData.result);
 
@@ -114,6 +119,8 @@ const PointCloud3D: React.FC<IAnnotationStateProps> = ({ currentData }) => {
         });
 
         ptCtx.setPointCloudResult(boxParamsList);
+      } else {
+        ptCtx.setPointCloudResult([]);
       }
 
       pointCloud?.controls.update();

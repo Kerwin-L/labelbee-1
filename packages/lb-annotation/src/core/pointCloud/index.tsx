@@ -21,6 +21,7 @@ import { IPolygonPoint } from '@/types/tool/polygon';
 import uuid from '@/utils/uuid';
 import { PCDLoader } from './PCDLoader';
 import { OrbitControls } from './OrbitControls';
+import { PointCloudCache } from './cache';
 
 interface IOrthographicCamera {
   left: number;
@@ -74,9 +75,9 @@ export class PointCloud {
 
   private backgroundColor: string;
 
-  private cachePointCloudGeometry?: THREE.Points;
-
   private DEFAULT_POINTCLOUD = 'POINTCLOUD';
+
+  private cacheInstance: PointCloudCache; // PointCloud Cache Map
 
   constructor({ container, noAppend, isOrthographicCamera, orthgraphicParams, backgroundColor = 'black' }: IProps) {
     this.container = container;
@@ -114,6 +115,8 @@ export class PointCloud {
     }
 
     this.init();
+
+    this.cacheInstance = PointCloudCache.getInstance();
   }
 
   get containerWidth() {
@@ -169,12 +172,16 @@ export class PointCloud {
     this.initRenderer();
   }
 
-  public generateBox(boxParams: IPointCloudBox, id: string = uuid(), color = 0xffffff) {
-    const oldBox = this.scene.getObjectByName(id);
+  public removeObjectByName(name: string) {
+    const oldBox = this.scene.getObjectByName(name);
     // Remove Old Box
     if (oldBox) {
       oldBox.removeFromParent();
     }
+  }
+
+  public generateBox(boxParams: IPointCloudBox, id: string = uuid(), color = 0xffffff) {
+    this.removeObjectByName(id);
 
     const { center, width, height, depth, rotation } = boxParams;
     const group = new THREE.Group();
@@ -492,7 +499,32 @@ export class PointCloud {
     );
   };
 
-  public loadPCDFile = (src: string, cb?: () => void) => {
+  public renderPointCloud(points: THREE.Points) {
+    // @ts-ignore
+    points.material.size = 1;
+    points.name = this.DEFAULT_POINTCLOUD;
+
+    const pointsMaterial = new THREE.PointsMaterial({
+      vertexColors: true,
+    });
+
+    pointsMaterial.onBeforeCompile = this.overridePointShader;
+
+    // @ts-ignore
+    const circle = this.createCircle(points.geometry.boundingSphere.radius * 2);
+    this.pointsUuid = points.uuid;
+
+    points.material = pointsMaterial;
+
+    this.filterZAxisPoints(points);
+
+    this.scene.add(points);
+    this.scene.add(circle);
+
+    this.render();
+  }
+
+  public loadPCDFile = async (src: string, cb?: () => void) => {
     const oldPointCloud: any = this.scene.getObjectByName(this.DEFAULT_POINTCLOUD);
 
     // Remove old PointCLoud
@@ -500,32 +532,12 @@ export class PointCloud {
       oldPointCloud.removeFromParent();
     }
 
-    this.pcdLoader.load(src, (points: any) => {
-      points.material.size = 1;
-      points.name = this.DEFAULT_POINTCLOUD;
+    const points = await this.cacheInstance.loadPCDFile(src);
 
-      const pointsMaterial = new THREE.PointsMaterial({
-        vertexColors: true,
-      });
-
-      pointsMaterial.onBeforeCompile = this.overridePointShader;
-
-      const circle = this.createCircle(points.geometry.boundingSphere.radius * 2);
-      this.pointsUuid = points.uuid;
-
-      points.material = pointsMaterial;
-
-      this.filterZAxisPoints(points);
-
-      this.scene.add(points);
-      this.scene.add(circle);
-
-      this.render();
-
-      if (cb) {
-        cb();
-      }
-    });
+    this.renderPointCloud(points);
+    if (cb) {
+      cb();
+    }
   };
 
   /**
@@ -553,13 +565,9 @@ export class PointCloud {
    * @param src
    * @param boxParams
    */
-  public loadPCDFileByBox = (src: string, boxParams: IPointCloudBox) => {
+  public loadPCDFileByBox = async (src: string, boxParams: IPointCloudBox) => {
     const cb = (points: any) => {
       points.material.size = 1;
-
-      if (!this.cachePointCloudGeometry) {
-        this.cachePointCloudGeometry = points;
-      }
 
       // TODO. Speed can be optimized.
       const newGeometry = this.filterPointsByBox(
@@ -569,15 +577,12 @@ export class PointCloud {
       );
 
       const newPoints = new THREE.Points(newGeometry, points.material);
-      newPoints.name = this.DEFAULT_POINTCLOUD;
+      newPoints.name = `${this.DEFAULT_POINTCLOUD}_123`;
       this.scene.add(newPoints);
       this.render();
     };
-    if (!this.cachePointCloudGeometry) {
-      this.pcdLoader.load(src, cb);
-    } else {
-      cb(this.cachePointCloudGeometry);
-    }
+    const points = await this.cacheInstance.loadPCDFile(src);
+    cb(points);
   };
 
   public generateBoxArrow = ({ width, depth }: IPointCloudBox) => {
