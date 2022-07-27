@@ -1268,6 +1268,7 @@ class PolygonOperation extends BasicToolOperation {
   }
 
   public onMouseUp(e: MouseEvent) {
+    debugger;
     if (this.isCombined) {
       switch (e.button) {
         case 0:
@@ -1299,6 +1300,7 @@ class PolygonOperation extends BasicToolOperation {
       return;
     }
 
+    debugger;
     switch (e.button) {
       case 0: {
         this.leftMouseUp(e);

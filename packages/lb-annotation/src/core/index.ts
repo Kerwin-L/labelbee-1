@@ -7,6 +7,7 @@ import { getConfig, styleDefaultConfig } from '@/constant/defaultConfig';
 import CommonToolUtils from '@/utils/tool/CommonToolUtils';
 import { IPolygonData } from '@/types/tool/polygon';
 import { ELang } from '@/constant/annotation';
+import { ToolScheduler } from './scheduler';
 
 interface IProps {
   container: HTMLElement;
@@ -54,6 +55,8 @@ export default class AnnotationEngine {
 
   private dependToolName?: EToolName;
 
+  private toolScheduler: ToolScheduler;
+
   constructor(props: IProps) {
     this.container = props.container;
     this.size = props.size;
@@ -61,6 +64,8 @@ export default class AnnotationEngine {
     this.imgNode = props.imgNode;
     this.config = props.config ?? JSON.stringify(getConfig(props.toolName)); // 设置默认操作
     this.style = props.style ?? styleDefaultConfig; // 设置默认操作
+    this.toolScheduler = new ToolScheduler(props);
+
     this.i18nLanguage = 'cn'; // 默认为中文（跟 basicOperation 内同步）
     this._initToolOperation();
   }
@@ -101,11 +106,12 @@ export default class AnnotationEngine {
       rotate: number;
     }>,
   ) {
-    if (!this.toolInstance) {
-      return;
-    }
+    this.toolScheduler.setImgNode(imgNode);
+    // if (!this.toolInstance) {
+    //   return;
+    // }
     this.imgNode = imgNode;
-    this.toolInstance.setImgNode(imgNode, basicImgInfo);
+    // this.toolInstance.setImgNode(imgNode, basicImgInfo);
   }
 
   public setSize(size: ISize) {
@@ -121,35 +127,39 @@ export default class AnnotationEngine {
    * @returns
    */
   private _initToolOperation() {
-    if (this.toolInstance) {
-      this.toolInstance.destroy();
-    }
+    // if (this.toolInstance) {
+    //   this.toolInstance.destroy();
+    // }
 
-    const ToolOperation: any = CommonToolUtils.getCurrentOperation(this.toolName);
-    if (!ToolOperation) {
-      return;
-    }
+    // const ToolOperation: any = CommonToolUtils.getCurrentOperation(this.toolName);
+    // if (!ToolOperation) {
+    //   return;
+    // }
 
-    const defaultData = {
-      container: this.container,
-      size: this.size,
-      config: this.config,
-      drawOutSideTarget: false,
-      style: this.style,
-    };
+    // const defaultData = {
+    //   container: this.container,
+    //   size: this.size,
+    //   config: this.config,
+    //   drawOutSideTarget: false,
+    //   style: this.style,
+    // };
 
-    /**
-     * 存储上层
-     */
-    if (this.imgNode) {
-      Object.assign(defaultData, { imgNode: this.imgNode });
-    }
+    // /**
+    //  * 存储上层
+    //  */
+    // if (this.imgNode) {
+    //   Object.assign(defaultData, { imgNode: this.imgNode });
+    // }
 
-    this.toolInstance = new ToolOperation(defaultData);
+    // this.toolInstance = new ToolOperation(defaultData);
+    const toolInstance = this.toolScheduler.createOperation(EToolName.Rect);
+
+    const pI = this.toolScheduler.createOperation(EToolName.Polygon);
 
     // 实时同步语言
-    this.setLang(this.i18nLanguage);
-    this.toolInstance.init();
+    // this.setLang(this.i18nLanguage);
+    // this.toolInstance.init();
+    this.toolInstance = toolInstance;
   }
 
   /**
@@ -225,5 +235,9 @@ export default class AnnotationEngine {
    */
   public setRenderEnhance(renderEnhance: IRenderEnhance) {
     this.toolInstance.setRenderEnhance(renderEnhance);
+  }
+
+  public switchCanvas() {
+    this.toolScheduler.switchCanvas();
   }
 }

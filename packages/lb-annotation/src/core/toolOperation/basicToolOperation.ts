@@ -38,6 +38,8 @@ interface IBasicToolOperationProps {
   showDefaultCursor?: boolean; // 默认会展示为 none
 
   forbidBasicResultRender?: boolean;
+
+  isAppend?: boolean; // 用于 canvas 层次的关闭
 }
 
 /**
@@ -159,7 +161,7 @@ class BasicToolOperation extends EventListener {
     this.showDefaultCursor = props.showDefaultCursor || false;
 
     this.destroyCanvas();
-    this.createCanvas(props.size);
+    this.createCanvas(props.size, props.isAppend);
     this.imgNode = props.imgNode;
     this.isImgError = !props.imgNode;
     this.basicImgInfo = {
@@ -305,7 +307,8 @@ class BasicToolOperation extends EventListener {
 
   // 是否限制鼠标操作
   public get forbidMouseOperation() {
-    return this.forbidOperation || this.valid === false;
+    // return this.forbidOperation || this.valid === false;
+    return false;
   }
 
   public get pixelRatio() {
@@ -325,7 +328,7 @@ class BasicToolOperation extends EventListener {
     this.eventUnbinding();
   }
 
-  public createCanvas(size: ISize) {
+  public createCanvas(size: ISize, isAppend = true) {
     // TODO 后续需要将 canvas 抽离出来，迭代器叠加
     const basicCanvas = document.createElement('canvas');
     const pixel = this.pixelRatio;
@@ -351,12 +354,14 @@ class BasicToolOperation extends EventListener {
     canvas.width = size.width * pixel;
     canvas.height = size.height * pixel;
 
-    if (this.container.hasChildNodes()) {
-      this.container.insertBefore(canvas, this.container.childNodes[0]);
-      this.container.insertBefore(basicCanvas, this.container.childNodes[0]);
-    } else {
-      this.container.appendChild(basicCanvas);
-      this.container.appendChild(canvas);
+    if (isAppend) {
+      if (this.container.hasChildNodes()) {
+        this.container.insertBefore(canvas, this.container.childNodes[0]);
+        this.container.insertBefore(basicCanvas, this.container.childNodes[0]);
+      } else {
+        this.container.appendChild(basicCanvas);
+        this.container.appendChild(canvas);
+      }
     }
 
     this.canvas = canvas;

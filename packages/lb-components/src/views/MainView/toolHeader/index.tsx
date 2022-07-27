@@ -146,6 +146,10 @@ const ToolHeader: React.FC<IToolHeaderProps> = ({
     ''
   );
 
+  const switchCanvas = () => {
+    annotationEngine.switchCanvas();
+  };
+
   const stepListNode = stepList.length > 1 && (
     <>
       <StepSwitch stepProgress={stepProgress} />
@@ -159,7 +163,8 @@ const ToolHeader: React.FC<IToolHeaderProps> = ({
     <div className={`${prefix}-header__lang`}>
       <span
         className={`${prefix}-langCN ${curLang === 'cn' ? 'active' : ''}`}
-        onClick={() => changeLanguage('cn')}
+        // onClick={() => changeLanguage('cn')}
+        onClick={() => switchCanvas()}
       >
         中文
       </span>
