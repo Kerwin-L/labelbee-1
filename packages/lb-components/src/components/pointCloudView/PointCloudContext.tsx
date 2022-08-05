@@ -17,6 +17,7 @@ interface IPointCloudContextInstances {
   setSideViewInstance: (instance: PointCloudAnnotation) => void;
   setBackViewInstance: (instance: PointCloudAnnotation) => void;
   setMainViewInstance: (instance: PointCloud) => void;
+  setAnnotations2d: (data: any) => void;
 }
 
 export interface IPointCloudContext extends IPointCloudContextInstances {
@@ -30,6 +31,8 @@ export interface IPointCloudContext extends IPointCloudContextInstances {
   addSelectedID: (selectedID: string) => void;
   selectedAllBoxes: () => void;
   selectedID: string;
+
+  annotations2d: Array<{ type: string; annotation: any }>;
 }
 
 export const PointCloudContext = React.createContext<IPointCloudContext>({
@@ -46,11 +49,15 @@ export const PointCloudContext = React.createContext<IPointCloudContext>({
   setMainViewInstance: () => {},
   addSelectedID: () => {},
   selectedAllBoxes: () => {},
+
+  annotations2d: [],
+  setAnnotations2d: () => {},
 });
 
 export const PointCloudProvider: React.FC<{}> = ({ children }) => {
   const [pointCloudBoxList, setPointCloudResult] = useState<IPointCloudBoxList>([]);
   const [selectedIDs, setSelectedIDsState] = useState<string[]>([]);
+  const [annotations2d, setAnnotations2d] = useState<string[]>([]);
   const [valid, setValid] = useState<boolean>(true);
   const [topViewInstance, setTopViewInstance] = useState<PointCloudAnnotation>();
   const [sideViewInstance, setSideViewInstance] = useState<PointCloudAnnotation>();
@@ -123,6 +130,8 @@ export const PointCloudProvider: React.FC<{}> = ({ children }) => {
       setBackViewInstance,
       mainViewInstance,
       setMainViewInstance,
+      annotations2d,
+      setAnnotations2d,
     };
   }, [
     valid,
@@ -132,6 +141,7 @@ export const PointCloudProvider: React.FC<{}> = ({ children }) => {
     sideViewInstance,
     backViewInstance,
     mainViewInstance,
+    annotations2d,
   ]);
 
   return <PointCloudContext.Provider value={ptCtx}>{children}</PointCloudContext.Provider>;

@@ -9,7 +9,13 @@ import { getClassName } from '@/utils/dom';
 import { FooterDivider } from '@/views/MainView/toolFooter';
 import { ZoomController } from '@/views/MainView/toolFooter/ZoomController';
 import { DownSquareOutlined, UpSquareOutlined } from '@ant-design/icons';
-import { cTool, PointCloud, MathUtils, PointCloudAnnotation } from '@labelbee/lb-annotation';
+import {
+  PolygonOperation,
+  cTool,
+  PointCloud,
+  MathUtils,
+  PointCloudAnnotation,
+} from '@labelbee/lb-annotation';
 import { EPerspectiveView, IPointCloudBox } from '@labelbee/lb-utils';
 import React, { useEffect, useRef, useState } from 'react';
 import { PointCloudContext, useRotate, useSingleBox } from './PointCloudContext';
@@ -383,7 +389,6 @@ const PointCloudTopView: React.FC<IAnnotationStateProps> = ({ currentData }) => 
       const polygonOperation = pointCloudAnnotation.pointCloud2dOperation;
 
       pointCloudRef.current = pointCloud;
-
       /**
        * Synchronized 3d point cloud view displacement operations
        *
@@ -427,6 +432,12 @@ const PointCloudTopView: React.FC<IAnnotationStateProps> = ({ currentData }) => 
       }
 
       const { boxParams } = afterPolygonCreated(polygon, TopViewPointCloud, size);
+
+      const newAnnotations2d = TopViewPointCloud.lidar2image(boxParams);
+
+      ptCtx.setAnnotations2d([
+        { type: 'polygon', annotation: { pointList: newAnnotations2d, id: '12' } },
+      ]);
       ptCtx.mainViewInstance?.hightLightOriginPointCloud(boxParams);
       synchronizeSideView(boxParams, polygon, ptCtx.sideViewInstance, currentData.url);
       synchronizeBackView(boxParams, polygon, ptCtx.backViewInstance);

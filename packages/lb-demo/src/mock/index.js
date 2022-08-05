@@ -15,7 +15,11 @@ export const videoList = [
 ];
 
 export const pointCloudList = [
-  'http://10.53.25.142:8001/10837/1/total.pcd',
+  // 'http://10.53.25.142:8001/10837/1/total.pcd',
+  'http://10.152.32.16:8080/top_center_lidar/2022-02-20-12-21-03-000.pcd',
+  'http://10.152.32.16:8080/top_center_lidar/2022-02-20-12-21-03-100.pcd',
+  'http://10.152.32.16:8080/top_center_lidar/2022-02-20-12-21-03-200.pcd',
+  'http://10.152.32.16:8080/top_center_lidar/2022-02-20-12-21-03-300.pcd',
   'http://10.53.25.142:8001/10837/2/total.pcd',
   'http://10.53.25.142:8001/10837/3/total.pcd',
   'http://10.53.25.142:8001/10837/4/total.pcd',

@@ -47,9 +47,62 @@ class PointCloudUtils {
 
     const DEFAULT_STEP = `step_1`;
     const pointCloudDataList = data[DEFAULT_STEP]?.result ?? [];
- 
+
     return pointCloudDataList;
   }
+
+  /**
+   * Get the set of points of the cube
+   * @param boxParams 
+   * @returns 
+   */
+  public static getAllPoint(boxParams: IPointCloudBox) {
+    const { center: { x, y, z }, width, height, depth } = boxParams;
+    
+    return [
+      {
+        x: x + width / 2,
+        y: y + height / 2,
+        z: z - depth / 2,
+      }, 
+      {
+        x: x + width / 2,
+        y: y + height / 2,
+        z: z + depth / 2,
+      },
+      {
+        x: x + width / 2,
+        y: y - height / 2,
+        z: z + depth / 2,
+      },
+      {
+        x: x + width / 2,
+        y: y - height / 2,
+        z: z - depth / 2,
+      },
+      {
+        x: x - width / 2,
+        y: y - height / 2,
+        z: z - depth / 2,
+      },
+      {
+        x: x - width / 2,
+        y: y - height / 2,
+        z: z + depth / 2,
+      },
+      {
+        x: x - width / 2,
+        y: y + height / 2,
+        z: z + depth / 2,
+      },
+      {
+        x: x - width / 2,
+        y: y + height / 2,
+        z: z - depth / 2,
+      },
+    ];
+  }
+
 }
 
 export default PointCloudUtils;

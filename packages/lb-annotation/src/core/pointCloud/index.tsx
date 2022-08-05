@@ -177,6 +177,140 @@ export class PointCloud {
     }
   }
 
+  public getMatrix4Projection() {
+    const calib = {
+      cam_K: {
+        rows: 3,
+        cols: 3,
+        type: 6,
+        continuous: true,
+        data: [
+          [1024.6, 0, 974.8],
+          [0, 1027, 557.2],
+          [0.0, 0.0, 1.0],
+        ],
+      },
+      cam_dist: {
+        rows: 1,
+        cols: 4,
+        type: 6,
+        continuous: true,
+        data: [[-0.3103, 0.0685, 0.00046809, -0.0012]],
+      },
+      intrinsicMatrix4: [
+        [664.2713623046875, 0.0, 966.8039735557395, 0],
+        [0.0, 673.2572021484375, 557.292600044435, 0],
+        [0.0, 0.0, 1.0, 0],
+        [0.0, 0.0, 0, 1],
+      ],
+      intrinsicMatrix4WithDist: [
+        [1024.6, 0, 974.8, -0.3103],
+        [0, 1027, 557.2, 0.0685],
+        [0.0, 0.0, 1.0, 0.00046809],
+        [0, 0, 0, -0.0012],
+      ],
+      sensor_calib: {
+        rows: 4,
+        cols: 4,
+        type: 6,
+        continuous: true,
+        data: [
+          [-0.99986, 0.0138869, -0.009277, -0.18942],
+          [0.00942274, 0.0105122, -0.9999, -0.0724215],
+          [-0.0137894, -0.999848, -0.0106419, 0.420832],
+          [0, 0, 0, 1],
+        ],
+      },
+    };
+
+    const deFuc = (acc: number[], cur: number[]) => {
+      return [...acc, ...cur];
+    };
+
+    const extrinsicList = calib.sensor_calib.data.reduce(deFuc, []);
+    const innerList = calib.intrinsicMatrix4.reduce(deFuc, []);
+
+    // @ts-ignore
+    const eMatrix4 = new THREE.Matrix4().set(...extrinsicList);
+    // @ts-ignore
+    const iMatrix4 = new THREE.Matrix4().set(...innerList);
+
+    return {
+      eMatrix4,
+      iMatrix4,
+    };
+  }
+
+  public lidar2image(boxParams: IPointCloudBox) {
+    const allPoint = PointCloudUtils.getAllPoint(boxParams);
+
+    const { eMatrix4, iMatrix4 } = this.getMatrix4Projection();
+
+    const transferPoint = allPoint
+      .map((point) => this.rotatePoint(point, boxParams.center, boxParams.rotation))
+      .map((point) => {
+        const vector = new THREE.Vector4(point.x, point.y, point.z);
+
+        const newV = vector.applyMatrix4(eMatrix4);
+        const z = 1 / newV.z;
+        const fixMatrix4 = new THREE.Matrix4().set(z, 0, 0, 0, 0, z, 0, 0, 0, 0, z, 0, 0, 0, 0, 1);
+
+        return newV.applyMatrix4(fixMatrix4).applyMatrix4(iMatrix4);
+      });
+
+    return transferPoint;
+  }
+
+  public async lidar2imagePointCloud(points: I3DSpaceCoord[]) {
+    // const pointThree = (await this.cacheInstance.loadPCDFile(src)) as THREE.Points;
+    // const pointData = pointThree.geometry.attributes.position;
+    // const points = [];
+    // for (let i = 0; i < pointData.count; i++) {
+    //   points.push({
+    //     x: pointData.array[i * 3],
+    //     y: pointData.array[i * 3 + 1],
+    //     z: pointData.array[i * 3 + 2],
+    //   });
+    // }
+
+    const { eMatrix4, iMatrix4 } = this.getMatrix4Projection();
+
+    const transferPoint = points
+      // .map((point) => this.rotatePoint(point, { x: 0, y: 0, z: 0 }))
+      // .filter((v) => {
+      //   if (v.y > 0) {
+      //     return false;
+      //   }
+
+      //   return true;
+      // })
+      .map((point) => {
+        const vector = new THREE.Vector4(point.x, point.y, point.z);
+        // const newV = vector.applyMatrix4(eMatrix4);
+        // const z = 1 / newV.z;
+        // const fixMatrix4 = new THREE.Matrix4().set(z, 0, 0, 0, 0, z, 0, 0, 0, 0, z, 0, 0, 0, 0, 1);
+        // const v = newV.clone().applyMatrix4(fixMatrix4).applyMatrix4(iMatrix4);
+        const v = vector.clone().applyMatrix4(iMatrix4);
+
+        const colorIndex = Math.floor((vector.z / 200) * 255);
+        // const colorIndex = Math.floor((newV.z / 200) * 255);
+        debugger;
+        return {
+          ...v,
+          stroke: `hsl(${colorIndex}, 100%, 50%)`,
+        };
+      })
+      .filter((v) => {
+        if (v.x > 1920 || v.x < 0 || v.y > 1080 || v.y < 0) {
+          return false;
+        }
+
+        return true;
+      });
+
+    return transferPoint;
+  }
+
   public generateBox(boxParams: IPointCloudBox, id: string = uuid(), color = 0xffffff) {
     this.removeObjectByName(id);
 
@@ -292,8 +426,9 @@ export class PointCloud {
    * @param rotationZ
    * @returns
    */
-  public rotatePoint(points: ICoordinate, centerPoint: I3DSpaceCoord, rotationZ: number) {
-    const pointVector = new THREE.Vector3(points.x, points.y, 1);
+  public rotatePoint(points: ICoordinate | I3DSpaceCoord, centerPoint: I3DSpaceCoord, rotationZ: number) {
+    // @ts-ignore
+    const pointVector = new THREE.Vector3(points.x, points.y, points?.z ?? 1);
     const Rz = new THREE.Matrix4().makeRotationZ(rotationZ);
     const TFrom = new THREE.Matrix4().makeTranslation(centerPoint.x, centerPoint.y, centerPoint.z);
     const TBack = new THREE.Matrix4().makeTranslation(-centerPoint.x, -centerPoint.y, -centerPoint.z);
