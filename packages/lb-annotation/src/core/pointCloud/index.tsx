@@ -20,6 +20,7 @@ import {
 } from '@labelbee/lb-utils';
 import { PointsMaterial, Shader } from 'three';
 import HighlightWorker from 'web-worker:./highlightWorker.js';
+import FilterBoxWorker from 'web-worker:./filterBoxWorker.js';
 import { isInPolygon } from '@/utils/tool/polygonTool';
 import { IPolygonPoint } from '@/types/tool/polygon';
 import uuid from '@/utils/uuid';
@@ -46,6 +47,7 @@ interface IProps {
 
 const DEFAULT_DISTANCE = 30;
 const highlightWorker = new HighlightWorker();
+const filterBoxWorker = new FilterBoxWorker();
 
 export class PointCloud {
   public renderer: THREE.WebGLRenderer;
@@ -488,33 +490,27 @@ export class PointCloud {
    * @returns
    */
   public filterPointsByBox(boxParams: IPointCloudBox, points: number[], color: number[]) {
-    const newPosition = [];
-    const newColor = [];
+    if (window.Worker) {
+      const { zMin, zMax, polygonPointList } = this.getCuboidFromPointCloudBox(boxParams);
 
-    const { zMin, zMax, polygonPointList } = this.getCuboidFromPointCloudBox(boxParams);
+      const params = {
+        boxParams,
+        zMin,
+        zMax,
+        polygonPointList,
+      };
 
-    for (let i = 0; i < points.length; i += 3) {
-      const x = points[i];
-      const y = points[i + 1];
-      const z = points[i + 2];
+      filterBoxWorker.postMessage(params);
+      filterBoxWorker.onmessage = (e: any) => {
+        const { color, position } = e.data;
 
-      const inPolygon = isInPolygon({ x, y }, polygonPointList);
-
-      if (inPolygon && z >= zMin && z <= zMax) {
-        newPosition.push(x);
-        newPosition.push(y);
-        newPosition.push(z);
-        newColor.push(color[i]);
-        newColor.push(color[i + 1]);
-        newColor.push(color[i + 2]);
-      }
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(newPosition, 3));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(newColor, 3));
+        geometry.computeBoundingSphere();
+        return geometry;
+      };
     }
-
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(newPosition, 3));
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(newColor, 3));
-    geometry.computeBoundingSphere();
-    return geometry;
   }
 
   public getCameraVector(
@@ -714,12 +710,13 @@ export class PointCloud {
         },
         points.geometry.attributes.position.array,
         points.geometry.attributes.color.array,
+        () => {
+          const newPoints = new THREE.Points(newGeometry, points.material);
+          newPoints.name = this.pointCloudObjectName;
+          this.scene.add(newPoints);
+          this.render();
+        },
       );
-
-      const newPoints = new THREE.Points(newGeometry, points.material);
-      newPoints.name = this.pointCloudObjectName;
-      this.scene.add(newPoints);
-      this.render();
     };
     const points = await this.cacheInstance.loadPCDFile(src);
     cb(points);

@@ -112,8 +112,8 @@ For picture conversion, providing input single channel mask output color picture
 ```ts
 import { ImgConversionUtils } from '@labelbee/lb-utils';
 
-const maskSrc = 'http://10.152.32.16:8080/ADE_val_00001993.png';
-const basicImgSrc = 'http://10.152.32.16:8080/ADE_val_00001993.jpg';
+const maskSrc = 'http://localhost:8080/ADE_val_00001993.png';
+const basicImgSrc = 'http://localhost:8080/ADE_val_00001993.jpg';
 
 /**
  * Convert mask to color map
@@ -134,8 +134,8 @@ import React, { useEffect, useState } from 'react';
 import { AnnotationView } from '@labelbee/lb-components';
 import { ImgConversionUtils } from '@labelbee/lb-utils';
 
-const maskSrc = 'http://10.152.32.16:8080/ADE_val_00001993.png';
-const basicImgSrc = 'http://10.152.32.16:8080/ADE_val_00001993.jpg';
+const maskSrc = 'http://localhost:8080/ADE_val_00001993.png';
+const basicImgSrc = 'http://localhost:8080/ADE_val_00001993.jpg';
 
 const App = () => {
   const [imgSrc, setImgSrc] = useState(maskSrc);

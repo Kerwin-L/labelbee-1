@@ -17,33 +17,23 @@ export const videoList = [
 export const pointCloudList = [
   // 'http://10.53.25.142:8001/10837/1/total.pcd',
   // 'http://127.0.0.1:8082/lidar/1651762642488711000.pcd',
-  'http://10.152.32.16:8080/top_center_lidar/2022-02-20-12-21-03-100.pcd',
-  'http://10.152.32.16:8080/top_center_lidar/2022-02-20-12-21-03-200.pcd',
-  'http://10.152.32.16:8080/top_center_lidar/2022-02-20-12-21-03-300.pcd',
-  'http://10.53.25.142:8001/10837/2/total.pcd',
-  'http://10.53.25.142:8001/10837/3/total.pcd',
-  'http://10.53.25.142:8001/10837/4/total.pcd',
-  'http://10.53.25.142:8001/10837/5/total.pcd',
-  'http://10.53.25.142:8001/10837/6/total.pcd',
-  'http://10.53.25.142:8001/10837/7/total.pcd',
-  'http://10.53.25.142:8001/10837/8/total.pcd',
-  'http://10.53.25.142:8001/10837/9/total.pcd',
-  'http://10.53.25.142:8001/10837/10/total.pcd',
-  'http://10.53.25.142:8001/10837/11/total.pcd',
-  'http://10.53.25.142:8001/10837/12/total.pcd',
-  'http://10.53.25.142:8001/10837/13/total.pcd',
-  'http://10.53.25.142:8001/10837/14/total.pcd',
-  'http://10.53.25.142:8001/10837/15/total.pcd',
-  'http://10.53.25.142:8001/10837/16/total.pcd',
-  'http://10.53.25.142:8001/10837/17/total.pcd',
-  'http://10.53.25.142:8001/10837/18/total.pcd',
-  'http://10.53.25.142:8001/10837/19/total.pcd',
-  'http://10.53.25.142:8001/10837/20/total.pcd',
+  'http://localhost:8080/top_center_lidar/2022-02-20-12-21-03-100.pcd',
+  'http://localhost:8080/top_center_lidar/2022-02-20-12-21-03-200.pcd',
+  'http://localhost:8080/top_center_lidar/2022-02-20-12-21-03-300.pcd',
+  'http://localhost:8080/top_center_lidar/2022-02-20-12-21-03-400.pcd',
+  'http://localhost:8080/top_center_lidar/2022-02-20-12-21-03-500.pcd',
+  'http://localhost:8080/top_center_lidar/2022-02-20-12-21-03-600.pcd',
+  'http://localhost:8080/top_center_lidar/2022-02-20-12-21-03-700.pcd',
+  'http://localhost:8080/top_center_lidar/2022-02-20-12-21-03-800.pcd',
+  'http://localhost:8080/top_center_lidar/2022-02-20-12-21-03-900.pcd',
+  'http://localhost:8080/top_center_lidar/2022-02-20-12-21-04-100.pcd',
+  'http://localhost:8080/top_center_lidar/2022-02-20-12-21-04-200.pcd',
+  'http://localhost:8080/top_center_lidar/2022-02-20-12-21-04-300.pcd',
 ];
 
 export const pointCloudMappingImgList = [
   {
-    url: 'http://10.152.32.16:8080/image_undistort/center_camera_fov120/2022-02-20-12-21-03-100.png',
+    url: 'http://localhost:8080/image_undistort/center_camera_fov120/2022-02-20-12-21-03-100.png',
     calib: {
       P: [
         [664.2713623046875, 0.0, 966.8039735557395, 0],
@@ -63,7 +53,7 @@ export const pointCloudMappingImgList = [
     },
   },
   {
-    url: 'http://10.152.32.16:8080/image_undistort/center_camera_fov30/2022-02-20-12-21-03-100.png',
+    url: 'http://localhost:8080/image_undistort/center_camera_fov30/2022-02-20-12-21-03-100.png',
     calib: {
       P: [
         [4454.6, 0, 954.3, 0],
@@ -83,7 +73,7 @@ export const pointCloudMappingImgList = [
     },
   },
   {
-    url: 'http://10.152.32.16:8080/image_undistort/left_front_camera/2022-02-20-12-21-03-100.png',
+    url: 'http://localhost:8080/image_undistort/left_front_camera/2022-02-20-12-21-03-100.png',
     calib: {
       P: [
         [1231.7, 0, 964.3, 0],
@@ -103,7 +93,7 @@ export const pointCloudMappingImgList = [
     },
   },
   {
-    url: 'http://10.152.32.16:8080/image_undistort/left_rear_camera/2022-02-20-12-21-03-100.png',
+    url: 'http://localhost:8080/image_undistort/left_rear_camera/2022-02-20-12-21-03-100.png',
     calib: {
       P: [
         [1255.3, 0, 952.9, 0],
@@ -123,7 +113,7 @@ export const pointCloudMappingImgList = [
     },
   },
   {
-    url: 'http://10.152.32.16:8080/image_undistort/rear_camera/2022-02-20-12-21-03-100.png',
+    url: 'http://localhost:8080/image_undistort/rear_camera/2022-02-20-12-21-03-100.png',
     calib: {
       P: [
         [2109.75, 0, 984.6, 0],

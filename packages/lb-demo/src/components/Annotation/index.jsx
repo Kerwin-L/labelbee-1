@@ -3,7 +3,7 @@ import AnnotationOperation from '@labelbee/lb-components';
 import '@labelbee/lb-components/dist/index.css';
 // import { DrawUtils } from '@labelbee/lb-annotation';
 import { fileList as urlList } from '../../mock';
-import { message } from 'antd';
+import { message, Modal } from 'antd';
 
 // Type definition.
 // type TRunPrediction = (params: {
@@ -94,6 +94,16 @@ const Annotation = (props) => {
   //   },
   // };
 
+  const sider = ({ pointCloudToolSidebar, pointCloudOperation }) => {
+    return (
+      <>
+        <div style={{ flex: 1 }}>{pointCloudToolSidebar}</div>
+        <div>12312231</div>
+        {pointCloudOperation}
+      </>
+    );
+  };
+
   return (
     <div>
       <AnnotationOperation
@@ -108,8 +118,16 @@ const Annotation = (props) => {
         stepList={stepList}
         step={step}
         onSave={onSave}
+        // sider={sider}
         dataInjectionAtCreation={dataInjectionAtCreation}
         // renderEnhance={renderEnhance}
+
+        // skipBeforePageTurning={(fuc) => {
+        //   Modal.confirm({
+        //     title: 'asd',
+        //     onOk: fuc,
+        //   })
+        // }}
       />
     </div>
   );

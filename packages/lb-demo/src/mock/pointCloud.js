@@ -531,5 +531,5 @@ export const pointCloudResult1 = JSON.stringify({
     resultPolygon: [],
     toolName: 'pointCloudTool',
   },
-  valid: true,
+  valid: false,
 });
