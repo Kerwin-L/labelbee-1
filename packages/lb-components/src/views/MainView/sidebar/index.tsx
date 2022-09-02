@@ -33,7 +33,10 @@ const Sidebar: React.FC<IProps> = ({ sider }) => {
   const stepInfo = useSelector((state: AppState) =>
     StepUtils.getCurrentStepInfo(state.annotation.step, state.annotation.stepList),
   );
-  const toolName = stepInfo?.tool;
+  const toolName = Array.isArray(stepInfo?.tool)
+    ? [...(stepInfo?.tool ?? 'rectTool')].pop()
+    : stepInfo?.tool;
+
   const { t } = useTranslation();
 
   if (!toolName) {

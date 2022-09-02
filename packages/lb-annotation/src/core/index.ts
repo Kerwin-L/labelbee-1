@@ -3,20 +3,21 @@
  */
 
 import { ELang } from '@/constant/annotation';
-import { getConfig, styleDefaultConfig } from '@/constant/defaultConfig';
+import { styleDefaultConfig } from '@/constant/defaultConfig';
 import { EToolName } from '@/constant/tool';
 import { IPolygonData } from '@/types/tool/polygon';
-import { HybridToolUtils, THybridToolName, ToolScheduler } from './scheduler';
+import { THybridToolName, ToolScheduler } from './scheduler';
 
 interface IProps {
+  toolName?: EToolName; // Old Defined. It's be deleted
+
+  tool: THybridToolName[];
+
   container: HTMLElement;
   size: ISize;
-  toolName: THybridToolName;
   imgNode?: HTMLImageElement; // 展示图片的内容
-  config?: string; // 任务配置
   style?: any;
 }
-
 const loadImage = (imgSrc: string) => {
   return new Promise((resolve, reject) => {
     const img = document.createElement('img');
@@ -35,15 +36,13 @@ const loadImage = (imgSrc: string) => {
 export default class AnnotationEngine {
   public toolInstance: any; // 用于存储当前工具实例
 
-  public toolName: THybridToolName;
+  public hybridTool: THybridToolName[] = [];
 
   public i18nLanguage: 'en' | 'cn'; // 存储当前 i18n 初始化数据
 
   private container: HTMLElement; // 当前结构绑定 container
 
   private size: ISize;
-
-  private config: string; // 定义 TODO！！
 
   private style: any; // 定义 TODO！！
 
@@ -59,10 +58,15 @@ export default class AnnotationEngine {
   constructor(props: IProps) {
     this.container = props.container;
     this.size = props.size;
-    this.toolName = props.toolName;
-    this.imgNode = props.imgNode;
+    if (props.toolName) {
+      throw new Error('Please use the new way to create. You can use `tool` to create // Add Change URL');
+    }
 
-    this.config = props.config ?? JSON.stringify(getConfig(HybridToolUtils.getTopToolName(props.toolName))); // 设置默认操作
+    if (props.tool) {
+      this.hybridTool = props.tool;
+    }
+
+    this.imgNode = props.imgNode;
     this.style = props.style ?? styleDefaultConfig; // 设置默认操作
     this.toolScheduler = new ToolScheduler(props);
 
@@ -83,10 +87,8 @@ export default class AnnotationEngine {
    * @param toolName
    * @param config
    */
-  public setToolName(toolName: THybridToolName, config?: string) {
-    this.toolName = toolName;
-    const defaultConfig = config || JSON.stringify(getConfig(HybridToolUtils.getTopToolName(toolName))); // 防止用户没有注入配置
-    this.config = defaultConfig;
+  public setToolName(toolList: THybridToolName[]) {
+    this.hybridTool = toolList;
     this._initToolOperation();
   }
 
@@ -126,25 +128,21 @@ export default class AnnotationEngine {
   private _initToolOperation() {
     this.toolScheduler.destroyAllLayer();
 
-    let toolList: EToolName[] = [];
-    const config = { hiddenImg: true };
+    const extraInitProps = { hiddenImg: true };
 
-    if (HybridToolUtils.isSingleTool(this.toolName)) {
-      toolList = [this.toolName] as EToolName[];
-
+    if (this.hybridTool.length === 1) {
       // Single tool retains images and tools at the same level
-      Object.assign(config, { hiddenImg: false });
-    } else {
-      toolList = this.toolName as EToolName[];
+      Object.assign(extraInitProps, { hiddenImg: false });
     }
 
-    if (toolList.length > 1) {
+    // Base Img
+    if (this.hybridTool.length > 1) {
       this.toolScheduler.createOperation(undefined, this.imgNode);
     }
 
-    toolList.forEach((toolName, i) => {
-      const toolInstance = this.toolScheduler.createOperation(toolName, undefined, config);
-      if (i === toolList.length - 1) {
+    this.hybridTool.forEach((info, i) => {
+      const toolInstance = this.toolScheduler.createOperation(info, undefined, extraInitProps);
+      if (i === this.hybridTool.length - 1) {
         // The last one by default is the topmost operation.
         this.toolInstance = toolInstance;
       }
@@ -251,7 +249,7 @@ export default class AnnotationEngine {
   public get firstToolInstance() {
     return this.toolScheduler.getFirstToolOperation();
   }
-  
+
   /**
    * 自定义样式渲染
    * @param customRenderStyle

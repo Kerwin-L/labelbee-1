@@ -12,16 +12,27 @@ import PolygonOperation from './toolOperation/polygonOperation';
 import { BasicToolOperation } from './toolOperation/basicToolOperation';
 import SegmentByRect from './toolOperation/segmentByRect';
 
-export type THybridToolName = EToolName | Array<EToolName>;
+export type TCustomToolType = {
+  type: 'custom';
+  tool: typeof BasicToolOperation; // Custom Tool By users
+  config?: string;
+};
+
+export type TOriginToolType = {
+  type: 'origin';
+  tool: EToolName;
+
+  config?: string;
+};
+
+export type THybridToolName = TCustomToolType | TOriginToolType;
 
 interface IToolSchedulerOperation {}
 
 interface IToolSchedulerProps {
   container: HTMLElement;
   size: ISize;
-  toolName: THybridToolName;
   imgNode?: HTMLImageElement; // 展示图片的内容
-  config?: string; // 任务配置
   style?: any;
 }
 
@@ -50,20 +61,6 @@ const arraySwap = (array: any[], index1: number, index2: number) => {
   return array;
 };
 
-export class HybridToolUtils {
-  public static isSingleTool(toolName: THybridToolName) {
-    return !this.isHybridTool(toolName);
-  }
-
-  public static isHybridTool(toolName: THybridToolName) {
-    return Array.isArray(toolName);
-  }
-
-  public static getTopToolName = (toolName: THybridToolName) => {
-    return (this.isHybridTool(toolName) ? toolName[toolName.length - 1] : toolName) as EToolName;
-  };
-}
-
 export class ToolScheduler implements IToolSchedulerOperation {
   private container: HTMLElement;
 
@@ -72,8 +69,6 @@ export class ToolScheduler implements IToolSchedulerOperation {
   private toolOperationDom: Array<HTMLElement> = [];
 
   private size: ISize;
-
-  private config: string; // 定义 TODO！！
 
   private style: any; // 定义 TODO！！
 
@@ -85,7 +80,6 @@ export class ToolScheduler implements IToolSchedulerOperation {
     this.container = props.container;
     this.size = props.size;
     this.imgNode = props.imgNode;
-    this.config = props.config ?? JSON.stringify(getConfig(HybridToolUtils.getTopToolName(props.toolName))); // 设置默认操作
     this.style = props.style ?? styleDefaultConfig; // 设置默认操作
   }
 
@@ -155,7 +149,7 @@ export class ToolScheduler implements IToolSchedulerOperation {
    * @param config
    * @returns
    */
-  public createOperation(tool?: EToolName, imgNode?: HTMLImageElement, config?: Object) {
+  public createOperation(hybridTool?: THybridToolName, imgNode?: HTMLImageElement, extraInitProps?: Object) {
     const { width, height } = this.defaultSize;
     const dom = this.createDom();
     const emptyImgNode = this.getEmptyImage(width, height);
@@ -163,31 +157,45 @@ export class ToolScheduler implements IToolSchedulerOperation {
     const defaultData = {
       container: dom,
       size: this.size,
-      config: this?.config ?? '{}',
+      config: hybridTool?.config ?? JSON.stringify(getConfig(hybridTool?.tool)),
       drawOutSideTarget: false,
       style: this.style,
       imgNode: imgNode || emptyImgNode,
-      hiddenImg: !!tool,
+      hiddenImg: !!hybridTool,
     };
-    if (config) {
-      Object.assign(defaultData, config);
+    if (extraInitProps) {
+      Object.assign(defaultData, extraInitProps);
     }
 
     let toolInstance: any;
-    if (!tool) {
+    if (!hybridTool) {
+      // Render BasicImg
       toolInstance = new BasicToolOperation(defaultData);
       dom.style.zIndex = '0';
       toolInstance.init();
     } else {
-      const ToolOperation: any = getCurrentOperation(tool);
-      if (!ToolOperation) {
-        return;
+      switch (hybridTool.type) {
+        case 'custom': {
+          const CustomTool = hybridTool.tool;
+          toolInstance = new CustomTool(defaultData);
+          break;
+        }
+
+        case 'origin': {
+          const OriginTool: any = getCurrentOperation(hybridTool.tool);
+          if (!OriginTool) {
+            throw new Error('Not match tool in EToolName');
+          }
+          toolInstance = new OriginTool(defaultData);
+          break;
+        }
+        default: {
+          throw new Error('You need to add type in tool');
+        }
       }
-      toolInstance = new ToolOperation(defaultData);
     }
 
     toolInstance?.init();
-    toolInstance.canvas.id = tool ?? 'basicCanvas';
 
     // Drag and Zoom sync to each canvas.
     toolInstance.on(
@@ -203,7 +211,7 @@ export class ToolScheduler implements IToolSchedulerOperation {
     });
 
     // Dom Injection
-    if (!tool) {
+    if (!hybridTool) {
       this.container.insertBefore(dom, this.container.childNodes[0]);
 
       // First Level
@@ -212,6 +220,7 @@ export class ToolScheduler implements IToolSchedulerOperation {
 
       return toolInstance;
     }
+
     this.container.appendChild(dom);
 
     this.toolOperationList.push(toolInstance);

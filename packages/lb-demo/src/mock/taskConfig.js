@@ -1,4 +1,4 @@
-import { cTool } from '@labelbee/lb-annotation';
+import { cTool, RectOperation } from '@labelbee/lb-annotation';
 const { EVideoToolName, EToolName, EPointCloudName } = cTool;
 
 const rectToolConfig = {
@@ -219,6 +219,48 @@ export const getConfig = (tool) => {
 export const getStepList = (tool, sourceStep, step) => {
   return [getStepConfig(tool)];
 };
+
+// const getStepConfig = (toolString = EToolName.Rect, step, sourceStep) => {
+//   let toolList = [
+//     {
+//       type: 'origin',
+//       tool: EToolName.Rect,
+//       config: JSON.stringify(getConfig(EToolName.Rect)),
+//     },
+//   ];
+
+//   let toolName = toolString;
+
+//   const splitChar = ' ';
+
+//   // Split Tool By Url.
+//   if (toolString?.indexOf(splitChar) > -1) {
+//     toolList = toolString.split(splitChar).map((tool) => {
+//       // Default by basicOperation
+//       return {
+//         type: 'origin',
+//         tool,
+//         config: JSON.stringify(getConfig(tool)),
+//       };
+//     });
+//     toolName = toolList[toolList.length - 1].tool;
+//   } else {
+//     toolList = [
+//       {
+//         type: 'origin',
+//         tool: toolName,
+//         config: JSON.stringify(getConfig(toolName)),
+//       },
+//     ];
+//   }
+
+//   return {
+//     step: step ?? 1,
+//     dataSourceStep: sourceStep || 0,
+//     tool: toolList,
+//     config: JSON.stringify(getConfig(toolName)),
+//   };
+// };
 
 const getStepConfig = (tool, step, sourceStep) => {
   let toolList = tool ?? EToolName.Rect;

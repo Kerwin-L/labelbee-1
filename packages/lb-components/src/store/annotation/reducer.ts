@@ -7,7 +7,7 @@ import { ConfigUtils } from '@/utils/ConfigUtils';
 import { composeResult, composeResultWithBasicImgInfo } from '@/utils/data';
 import StepUtils from '@/utils/StepUtils';
 import ToolUtils from '@/utils/ToolUtils';
-import { AnnotationEngine, CommonToolUtils, ImgUtils } from '@labelbee/lb-annotation';
+import { AnnotationEngine, BasicToolOperation, CommonToolUtils, ImgUtils } from '@labelbee/lb-annotation';
 import { i18n } from '@labelbee/lb-utils';
 import { message } from 'antd/es';
 import _ from 'lodash';
@@ -78,12 +78,22 @@ const updateToolInstance = (annotation: AnnotationState, imgNode: HTMLImageEleme
   }
 
   const canvasSize = getFormatSize({ width: window.innerWidth, height: window.innerHeight });
+
+  const toolList = Array.isArray(stepConfig.tool)
+    ? stepConfig.tool.map((tool) => {
+      const isCustom = Object.getPrototypeOf(tool) === BasicToolOperation;
+      return {
+        type: isCustom ? 'custom' : 'origin',
+        tool,
+      }
+    })
+    : [{ type: 'origin', tool: stepConfig.tool, config }];
+
   const annotationEngine = new AnnotationEngine({
     container,
-    toolName: stepConfig.tool,
+    tool: toolList,
     size: canvasSize,
     imgNode,
-    config,
     style: JSON.parse(styleString),
   });
 
@@ -248,8 +258,8 @@ export const annotationReducer = (
 
     /**
      * For data storage in dependent states
-     * 
-     * Features: 
+     *
+     * Features:
      * 1. Get Data from ToolInstance (If it use toolInstance)
      * 2. Filter Data By BasicResultList
      */
@@ -585,7 +595,13 @@ export const annotationReducer = (
       }
 
       const stepConfig = getStepConfig(stepList, toStep);
-      annotationEngine?.setToolName(stepConfig.tool, stepConfig.config);
+      annotationEngine?.setToolName([
+        {
+          type: 'origin',
+          tool: stepConfig.tool,
+          config: stepConfig.config,
+        },
+      ]);
 
       return {
         ...state,

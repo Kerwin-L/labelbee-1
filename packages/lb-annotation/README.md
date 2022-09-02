@@ -38,7 +38,12 @@ const App = () => {
             width: 1000,
             height: 600,
           },
-          toolName: 'rectTool', // 关键
+          tool: [
+            {
+              type: 'origin',
+              tool: 'rectTool',
+            },
+          ],
           imgNode,
         });
 
@@ -177,7 +182,16 @@ const App = () => {
             width: 1000,
             height: 600,
           },
-          toolName: ['segmentByRectTool', 'polygonTool'], // 创建通过多层级进行创建
+          tool: [
+            {
+              type: 'origin',
+              tool: 'segmentByRectTool',
+            },
+            {
+              type: 'origin',
+              tool: 'polygonTool',
+            },
+          ], // 创建通过多层级进行创建
           imgNode,
         });
 

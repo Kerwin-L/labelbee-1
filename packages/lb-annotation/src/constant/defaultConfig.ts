@@ -106,7 +106,7 @@ const polygonConfig = {
   customFormat: '',
 };
 
-export const getConfig = (tool: EToolName) => {
+export const getConfig = (tool: EToolName | any) => {
   if (tool === 'lineTool') {
     return lineToolConfig;
   }

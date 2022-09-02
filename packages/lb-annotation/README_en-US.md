@@ -38,7 +38,12 @@ const App = () => {
             width: 1000,
             height: 600,
           },
-          toolName: 'rectTool', // 关键
+          tool: [
+            {
+              type: 'origin',
+              tool: 'rectTool',
+            },
+          ],
           imgNode,
         });
 
