@@ -14,8 +14,14 @@ import { VideoTagTool } from '@/components/videoPlayer/TagToolInstanceAdaptorI18
 import './index.scss';
 import { PointCloudProvider } from './components/pointCloudView/PointCloudContext';
 import { AppState } from './store';
+import { LabelBeeContext } from '@/store/ctx';
 
 export const store = configureStore();
+
+// export const LabelBeeContext = React.createContext<ReactReduxContextValue<any, AnyAction>>({
+//   store,
+//   storeState: store.getState(),
+// });
 
 const OutputApp = (props: AppProps, ref: any) => {
   const [toolInstance, setToolInstance] = useState<ToolInstance>();
@@ -39,7 +45,7 @@ const OutputApp = (props: AppProps, ref: any) => {
   );
 
   return (
-    <Provider store={store}>
+    <Provider store={store} context={LabelBeeContext}>
       <I18nextProvider i18n={i18n}>
         <PointCloudProvider>
           <App {...props} setToolInstance={setToolInstance} />
@@ -51,4 +57,4 @@ const OutputApp = (props: AppProps, ref: any) => {
 
 export default React.forwardRef(OutputApp);
 
-export { AnnotationView, PointCloudAnnotationView, i18n, VideoTagTool };
+export { AnnotationView, PointCloudAnnotationView, i18n, VideoTagTool, LabelBeeContext };

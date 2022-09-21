@@ -554,7 +554,7 @@ class BasicToolOperation extends EventListener {
 
     this.emit('dependRender');
 
-    this.emit('renderZoom', zoom, currentPos, imgInfo);
+    // this.emit('renderZoom', zoom, currentPos, imgInfo);
   };
 
   /**

@@ -5,12 +5,14 @@
  */
 
 import React from 'react';
-import { connect, useDispatch } from 'react-redux';
+import { connect } from 'react-redux';
+import { useDispatch } from '@/store/ctx';
 import { AppState } from '@/store';
 import { ANNOTATION_ACTIONS } from '@/store/Actions';
 import { AnnotationState } from '@/store/annotation/types';
 import { PageBackward, PageForward, PageJump } from '@/store/annotation/actionCreators';
 import { TagToolInstanceAdaptor } from '@/components/videoPlayer/TagToolInstanceAdaptor';
+import { LabelBeeContext } from '@/index';
 
 const VideoAnnotate: React.FC<{ annotation: AnnotationState }> = (props) => {
   const { imgList, imgIndex, stepList, step } = props.annotation;
@@ -48,4 +50,6 @@ const VideoAnnotate: React.FC<{ annotation: AnnotationState }> = (props) => {
   );
 };
 
-export default connect(({ annotation }: AppState) => ({ annotation }))(VideoAnnotate);
+export default connect(({ annotation }: AppState) => ({ annotation }), null, null, {
+  context: LabelBeeContext,
+})(VideoAnnotate);

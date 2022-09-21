@@ -5,7 +5,9 @@
 import { Dropdown } from 'antd/es';
 import { CaretDownOutlined, OrderedListOutlined } from '@ant-design/icons';
 import React from 'react';
-import { connect, useDispatch } from 'react-redux';
+import { connect } from 'react-redux';
+import { useDispatch } from '@/store/ctx';
+
 import { AppState } from '@/store';
 import IconWithText from '@/components/customAntd/IconWithText';
 import { prefix } from '@/constant';
@@ -13,6 +15,7 @@ import AnnotationStepPopover from '@/components/annotationStepPopover';
 import { IStepInfo } from '@/types/step';
 import { UpdateProcessingStep } from '@/store/annotation/actionCreators';
 import { useTranslation } from 'react-i18next';
+import { LabelBeeContext } from '@/index';
 
 interface IProps {
   stepProgress: number;
@@ -49,4 +52,4 @@ const mapStateToProps = (state: AppState) => ({
   step: state.annotation.step,
 });
 
-export default connect(mapStateToProps)(StepSwitch);
+export default connect(mapStateToProps, null, null, { context: LabelBeeContext })(StepSwitch);

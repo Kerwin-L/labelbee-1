@@ -1,4 +1,4 @@
-import { store } from '@/index';
+import { LabelBeeContext, store } from '@/index';
 import { message } from 'antd/es';
 import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
@@ -191,4 +191,6 @@ const mapStateToProps = (state: AppState) => {
   };
 };
 
-export default connect(mapStateToProps)(AnnotationOperation);
+export default connect(mapStateToProps, null, null, { context: LabelBeeContext })(
+  AnnotationOperation,
+);

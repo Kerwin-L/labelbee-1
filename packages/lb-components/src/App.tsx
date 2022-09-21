@@ -3,6 +3,7 @@ import { i18n } from '@labelbee/lb-utils';
 import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
 import { store } from '.';
+import { LabelBeeContext } from '@/store/ctx';
 import { AppState } from './store';
 import { ANNOTATION_ACTIONS } from './store/Actions';
 import { InitTaskData, loadImgList, UpdateInjectFunc } from './store/annotation/actionCreators';
@@ -79,7 +80,7 @@ export interface AppProps {
   customRenderStyle?: (data: any) => IAnnotationStyle;
 }
 
-const App: React.FC<AppProps> = (props) => {
+const AppSSSSS: React.FC<AppProps> = (props) => {
   const {
     imgList,
     step = 1,
@@ -180,4 +181,4 @@ const mapStateToProps = (state: AppState) => ({
   toolInstance: state.annotation.toolInstance,
 });
 
-export default connect(mapStateToProps)(App);
+export default connect(mapStateToProps, null, null, { context: LabelBeeContext })(AppSSSSS);
