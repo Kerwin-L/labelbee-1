@@ -82,6 +82,7 @@ class ScribbleTool extends BasicToolOperation {
     const { canvas, ctx } = ImgConversionUtils.createCanvas(imgNode);
     this.cacheCanvas = canvas;
     this.cacheContext = ctx;
+    this.cacheContext.imageSmoothingEnabled = false;
   }
 
   public updateCacheCanvasSize(imgNode: HTMLImageElement) {

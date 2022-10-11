@@ -2,8 +2,15 @@ import React, { useEffect, useRef } from 'react';
 import AnnotationOperation from '@labelbee/lb-components';
 import '@labelbee/lb-components/dist/index.css';
 // import { DrawUtils } from '@labelbee/lb-annotation';
-import { fileList as urlList } from '../../mock';
-import { message } from 'antd';
+import {
+  fileList as urlList,
+  kitti2PointCloudList,
+  kitti2PointCloudMappingImgList,
+  pointCloudList,
+  pointCloudMappingImgList,
+} from '../../mock';
+import { message, Modal } from 'antd';
+import { pointCloudResult1 } from '../../mock/pointCloud';
 
 // Type definition.
 // type TRunPrediction = (params: {
@@ -78,6 +85,17 @@ const Annotation = (props) => {
     });
   };
 
+  const getFileData = (_, index) => {
+    return Promise.resolve({
+      id: index,
+      url: pointCloudList[index],
+      // mappingImgList: kitti2PointCloudMappingImgList,
+      mappingImgList: index === 0 ? pointCloudMappingImgList : [],
+      // result: pointCloudResult1
+      result: '{}',
+    });
+  };
+
   // const renderEnhance = {
   //   staticRender: (canvas, rect, style) => {
   //     DrawUtils.drawRectWithFill(canvas, rect, { color: style.fillColor });
@@ -94,6 +112,13 @@ const Annotation = (props) => {
   //   },
   // };
 
+  const skipBeforePageTurning = (aa) => {
+    Modal.confirm({
+      title: 'asdasd',
+      onOk: aa,
+    });
+  };
+
   return (
     <div>
       <AnnotationOperation
@@ -109,6 +134,8 @@ const Annotation = (props) => {
         step={step}
         onSave={onSave}
         dataInjectionAtCreation={dataInjectionAtCreation}
+        // skipBeforePageTurning={skipBeforePageTurning}
+        // getFileData={getFileData}
         // renderEnhance={renderEnhance}
       />
     </div>

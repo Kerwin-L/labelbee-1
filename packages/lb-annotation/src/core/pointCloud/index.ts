@@ -275,14 +275,14 @@ export class PointCloud {
   ) {
     const allViewData = PointCloudUtils.getAllViewData(boxParams);
     const { P, R, T } = cameraMatrix;
-    const { composeMatrix4 } = this.transferKitti2Matrix(P, R, T);
+    const { composeMatrix4, TM, PM } = this.transferKitti2Matrix(P, R, T);
 
     const transferViewData = allViewData
       .map((viewData) => ({
         type: viewData.type,
         pointList: viewData.pointList
           .map((point) => this.rotatePoint(point, boxParams.center, boxParams.rotation))
-          .map((point) => this.lidar2image(point, composeMatrix4))
+          .map((point) => this.lidar2image(point, composeMatrix4, TM, PM))
           .filter((v) => v !== undefined),
       }))
       // Clear Empty PointList
@@ -291,23 +291,61 @@ export class PointCloud {
     return transferViewData;
   }
 
-  public lidar2image(point: { x: number; y: number; z: number }, composeMatrix4: THREE.Matrix4) {
+  public lidar2image(
+    point: { x: number; y: number; z: number },
+    composeMatrix4: THREE.Matrix4,
+    T: THREE.Matrix4,
+    P: THREE.Matrix4,
+  ) {
     const vector = new THREE.Vector4(point.x, point.y, point.z);
-    const newV = vector.applyMatrix4(composeMatrix4);
-
-    // Just keep the front object.
-    if (newV.z < 0) {
+    // const newV = vector.applyMatrix4(composeMatrix4);
+    const newV = vector.applyMatrix4(T);
+    if (newV.x < 0) {
       return undefined;
     }
 
+    const xInv = 1 / newV.x;
     /*
      * Depth normalization of the imaging plane
      * 成像平面深度归一化
+     *
+     * （10, 20, 30) => (1, 2, 3)
+     *
+     * (2 30, 35) => (1, 15, 17.5)
      */
-    const z = 1 / newV.z;
-    const fixMatrix4 = new THREE.Matrix4().set(z, 0, 0, 0, 0, z, 0, 0, 0, 0, z, 0, 0, 0, 0, 1);
-    return newV.applyMatrix4(fixMatrix4);
+    const fixMatrix4 = new THREE.Matrix4().set(xInv, 0, 0, 0, 0, xInv, 0, 0, 0, 0, xInv, 0, 0, 0, 0, 1);
+    const fixVector = newV.applyMatrix4(fixMatrix4);
+    const newVector = fixVector.applyMatrix4(P);
+
+    // const x = -newV.y * xInv * P[0][0] + P[0][2];
+    // const y = -newV.z * xInv * P[1][1] + P[1][2];
+
+    // const x = (-newV.y * P[0][0] + P[0][2]) * xInv;
+    // const y = (-newV.z * P[1][1] + P[1][2]) * xInv;
+
+    return {
+      x: newVector.x,
+      y: newVector.y,
+    };
   }
+
+  // public lidar2image(point: { x: number; y: number; z: number }, composeMatrix4: THREE.Matrix4) {
+  //   const vector = new THREE.Vector4(point.x, point.y, point.z);
+  //   const newV = vector.applyMatrix4(composeMatrix4);
+
+  //   // Just keep the front object.
+  //   if (newV.x < 0) {
+  //     return undefined;
+  //   }
+
+  //   /*
+  //    * Depth normalization of the imaging plane
+  //    * 成像平面深度归一化
+  //    */
+  //   const z = 1 / newV.x;
+  //   const fixMatrix4 = new THREE.Matrix4().set(z, 0, 0, 0, 0, z, 0, 0, 0, 0, z, 0, 0, 0, 0, 1);
+  //   return newV.applyMatrix4(fixMatrix4);
+  // }
 
   /**
    * Render box by params

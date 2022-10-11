@@ -401,6 +401,8 @@ class BasicToolOperation extends EventListener {
     this.container.style.cursor = this.defaultCursor;
     this.ctx?.scale(pixel, pixel);
     this.basicCtx?.scale(pixel, pixel);
+    this.basicCtx.imageSmoothingEnabled = false;
+
   }
 
   public destroyCanvas() {
