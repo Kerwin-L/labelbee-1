@@ -238,6 +238,21 @@ const PointCloudListener: React.FC<IA2MapStateProps> = ({ currentData, config })
         }
       });
     };
+
+    /**
+     * 点云的限制操作仅
+     * @param forbidOperation 
+     */
+    toolInstanceRef.current.setForbidOperation = (forbidOperation: boolean) => {
+      ptCtx.topViewInstance?.pointCloud2dOperation.setForbidOperation(forbidOperation);
+      if (forbidOperation === true) {
+      }
+    }
+
+    toolInstanceRef.current.setShowDefaultCursor = (forbidOperation: boolean) => {
+      ptCtx.topViewInstance?.pointCloud2dOperation.setForbidOperation(forbidOperation);
+    }
+    
   }, [ptCtx.pointCloudBoxList, ptCtx.selectedID, ptCtx.valid, ptCtx.polygonList]);
 
   useEffect(() => {

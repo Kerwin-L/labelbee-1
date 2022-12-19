@@ -15,6 +15,7 @@ class ToolUtils {
   public static isPointCloudTool(tool?: string) {
     return tool ? (Object.values(EPointCloudName) as string[]).includes(tool) : false;
   }
+
 }
 
 export default ToolUtils;
