@@ -425,8 +425,8 @@ export const usePointCloudViews = () => {
 
     polygonOperation.setSelectedIDs([newPolygon.id]);
     setSelectedIDs(boxParams.id);
-    syncPointCloudViews(PointCloudView.Top, newPolygon, boxParams, zoom);
-    addPointCloudBox(boxParams);
+    const newPointCloudList = addPointCloudBox(boxParams);
+    syncPointCloudViews(PointCloudView.Top, newPolygon, boxParams, zoom, newPointCloudList);
     addHistory({ newBoxParams: boxParams });
   };
 
@@ -474,8 +474,8 @@ export const usePointCloudViews = () => {
         };
       }
 
-      updateSelectedBox(newBoxParams);
-      syncPointCloudViews(fromView, newPolygon, newBoxParams);
+      const newPointCloudList = updateSelectedBox(newBoxParams);
+      syncPointCloudViews(fromView, newPolygon, newBoxParams, undefined, newPointCloudList);
     }
   };
 
@@ -519,8 +519,14 @@ export const usePointCloudViews = () => {
         _.pickBy(newBoxParams, (v, k) => ['width', 'height', 'x', 'y']),
       );
 
-      updateSelectedBox(newBoxParams);
-      syncPointCloudViews(PointCloudView.Top, polygon, selectedPointCloudBox);
+      const newPointCloudBoxList = updateSelectedBox(newBoxParams);
+      syncPointCloudViews(
+        PointCloudView.Top,
+        polygon,
+        selectedPointCloudBox,
+        undefined,
+        newPointCloudBoxList,
+      );
     }
   };
 
@@ -535,6 +541,7 @@ export const usePointCloudViews = () => {
     polygon: any,
     boxParams: IPointCloudBox,
     zoom?: number,
+    newPointCloudBoxList?: IPointCloudBox[],
   ) => {
     const dataUrl = currentData?.url;
 
@@ -562,7 +569,12 @@ export const usePointCloudViews = () => {
     }
 
     mainViewGenBox(boxParams);
-    mainViewInstance?.highlightOriginPointCloud(boxParams);
+    if (newPointCloudBoxList) {
+      ptCtx.syncAllViewPointCloudColor(newPointCloudBoxList);
+    }
+    console.log('syncPointCloudViews', boxParams, pointCloudBoxList);
+
+    // mainViewInstance?.highlightOriginPointCloud(pointCloudBoxList);
   };
 
   const pointCloudBoxListUpdated = (newBoxes: IPointCloudBox[]) => {
@@ -582,8 +594,8 @@ export const usePointCloudViews = () => {
       bottom: -size.height / 2,
       near: 100,
       far: -100,
-    }
-    
+    };
+
     mainViewInstance.initOrthographicCamera(orthographicParams);
     mainViewInstance.initRenderer();
     mainViewInstance.render();

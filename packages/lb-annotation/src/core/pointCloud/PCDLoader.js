@@ -8,6 +8,7 @@
  */
 
 import { BufferGeometry, FileLoader, Float32BufferAttribute, Loader, LoaderUtils, Points, PointsMaterial } from 'three';
+import { COLOR_MAP_JET } from '@labelbee/lb-utils';
 
 class PCDLoader extends Loader {
   constructor(manager) {
@@ -180,7 +181,6 @@ class PCDLoader extends Loader {
     const color = [];
 
     // ascii
-
     if (PCDheader.data === 'ascii') {
       const { offset } = PCDheader;
       const pcdData = textData.slice(PCDheader.headerLen);
@@ -196,27 +196,6 @@ class PCDLoader extends Loader {
           position.push(parseFloat(line[offset.y]));
           position.push(parseFloat(line[offset.z]));
         }
-
-        // if (offset.rgb !== undefined) {
-        //   const rgb_field_index = PCDheader.fields.findIndex((field) => field === 'rgb');
-        //   const rgb_type = PCDheader.type[rgb_field_index];
-
-        //   const float = parseFloat(line[offset.rgb]);
-        //   let rgb = float;
-
-        //   if (rgb_type === 'F') {
-        //     // treat float values as int
-        //     // https://github.com/daavoo/pyntcloud/pull/204/commits/7b4205e64d5ed09abe708b2e91b615690c24d518
-        //     const farr = new Float32Array(1);
-        //     farr[0] = float;
-        //     rgb = new Int32Array(farr.buffer)[0];
-        //   }
-
-        //   const r = (rgb >> 16) & 0x0000ff;
-        //   const g = (rgb >> 8) & 0x0000ff;
-        //   const b = (rgb >> 0) & 0x0000ff;
-        //   color.push(r / 255, g / 255, b / 255);
-        // }
 
         if (this.genColorByCoord) {
           const pdColor = this.genColorByCoord(
@@ -293,15 +272,19 @@ class PCDLoader extends Loader {
 
     // binary
 
+    let maxZ = -Number.MAX_SAFE_INTEGER;
+    let minZ = Number.MAX_SAFE_INTEGER;
     if (PCDheader.data === 'binary') {
       const dataview = new DataView(data, PCDheader.headerLen);
       const { offset } = PCDheader;
 
       for (let i = 0, row = 0; i < PCDheader.points; i++, row += PCDheader.rowSize) {
+        let z;
         if (offset.x !== undefined) {
           position.push(dataview.getFloat32(row + offset.x, this.littleEndian));
           position.push(dataview.getFloat32(row + offset.y, this.littleEndian));
-          position.push(dataview.getFloat32(row + offset.z, this.littleEndian));
+          z = dataview.getFloat32(row + offset.z, this.littleEndian);
+          position.push(z);
         }
 
         // if (offset.rgb !== undefined) {
@@ -313,15 +296,29 @@ class PCDLoader extends Loader {
         if (offset.normal_x !== undefined) {
           normal.push(dataview.getFloat32(row + offset.normal_x, this.littleEndian));
           normal.push(dataview.getFloat32(row + offset.normal_y, this.littleEndian));
-          normal.push(dataview.getFloat32(row + offset.normal_z, this.littleEndian));
+          z = dataview.getFloat32(row + offset.normal_z, this.littleEndian);
+          normal.push(z);
         }
+        if (z) {
+          if (z < minZ) {
+            minZ = z;
+          }
+          if (z > maxZ) {
+            maxZ = z;
+          }
+        }
+      }
 
+      for (let i = 0, row = 0; i < PCDheader.points; i++, row += PCDheader.rowSize) {
         if (this.genColorByCoord) {
-          const pdColor = this.genColorByCoord(
-            dataview.getFloat32(row + offset.x, this.littleEndian),
-            dataview.getFloat32(row + offset.y, this.littleEndian),
-            dataview.getFloat32(row + offset.z, this.littleEndian),
-          );
+          const pdColor = this.genColorByZ({
+            x: dataview.getFloat32(row + offset.x, this.littleEndian),
+            y: dataview.getFloat32(row + offset.y, this.littleEndian),
+            z: dataview.getFloat32(row + offset.z, this.littleEndian),
+            minZ,
+            maxZ,
+          });
+
           const pdColorUnit8 = pdColor.map((hex) => hex / 255);
           color.push(...pdColorUnit8);
         }
@@ -368,6 +365,51 @@ class PCDLoader extends Loader {
     }
 
     return [0, 0, 255];
+  }
+
+  // rendering multiple colors based on the z-axis
+  genColorByZ({ x, y, z, minZ, maxZ }) {
+    const L = maxZ - minZ;
+    const L_2 = L / 2;
+
+    const zBoundary = z - minZ;
+    // 1. JET
+    const index = Math.floor(((z - minZ) / L) * 255);
+    const color = COLOR_MAP_JET[index];
+
+    return [color[0], color[1], color[2]];
+  }
+
+  getMaxMinZ(points) {
+    for (let i = 0, row = 0; i < points; i++, row += PCDheader.rowSize) {
+      if (offset.x !== undefined) {
+        position.push(dataview.getFloat32(row + offset.x, this.littleEndian));
+        position.push(dataview.getFloat32(row + offset.y, this.littleEndian));
+        position.push(dataview.getFloat32(row + offset.z, this.littleEndian));
+      }
+
+      // if (offset.rgb !== undefined) {
+      //   color.push(dataview.getUint8(row + offset.rgb + 2) / 255.0);
+      //   color.push(dataview.getUint8(row + offset.rgb + 1) / 255.0);
+      //   color.push(dataview.getUint8(row + offset.rgb + 0) / 255.0);
+      // }
+
+      if (offset.normal_x !== undefined) {
+        normal.push(dataview.getFloat32(row + offset.normal_x, this.littleEndian));
+        normal.push(dataview.getFloat32(row + offset.normal_y, this.littleEndian));
+        normal.push(dataview.getFloat32(row + offset.normal_z, this.littleEndian));
+      }
+
+      if (this.genColorByCoord) {
+        const pdColor = this.genColorByCoord(
+          dataview.getFloat32(row + offset.x, this.littleEndian),
+          dataview.getFloat32(row + offset.y, this.littleEndian),
+          dataview.getFloat32(row + offset.z, this.littleEndian),
+        );
+        const pdColorUnit8 = pdColor.map((hex) => hex / 255);
+        color.push(...pdColorUnit8);
+      }
+    }
   }
 }
 

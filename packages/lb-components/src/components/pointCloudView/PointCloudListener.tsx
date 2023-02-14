@@ -210,12 +210,24 @@ const PointCloudListener: React.FC<IA2MapStateProps> = ({ currentData, config })
       if (selectBox) {
         selectBox.attribute = newAttribute;
 
-        updateSelectedBox(selectBox);
+        const newPointCloudList =  updateSelectedBox(selectBox);
         reRenderPointCloud3DBox(selectBox);
+
+        if (ptCtx.mainViewInstance) {
+          
+          ptCtx.syncAllViewPointCloudColor(newPointCloudList);
+          // const colorPromise = ptCtx.mainViewInstance.highlightOriginPointCloud(selectBox, ptCtx.pointCloudBoxList)
+          // colorPromise?.then(color => {
+          //   if (color) {
+          //     ptCtx.syncAllViewPointCloudColor(color);
+          //   }
+          // })
+        }
       }
       if (selectedPolygon) {
         pushHistoryUnderUpdatePolygon({ ...selectedPolygon, attribute: newAttribute });
       }
+
     };
 
     toolInstanceRef.current.setSubAttribute = (key: string, value: string) => {
@@ -271,7 +283,7 @@ const PointCloudListener: React.FC<IA2MapStateProps> = ({ currentData, config })
     toolInstanceRef.current.setShowDefaultCursor = (showDefaultCursor: boolean) => {
       ptCtx.topViewInstance?.pointCloud2dOperation?.setShowDefaultCursor(showDefaultCursor);
     };
-  }, [ptCtx.pointCloudBoxList, ptCtx.selectedID, ptCtx.valid, ptCtx.polygonList]);
+  }, [ptCtx.pointCloudBoxList, ptCtx.selectedID, ptCtx.valid, ptCtx.polygonList, ptCtx.mainViewInstance]);
 
   useEffect(() => {
     toolInstanceRef.current.history = {
@@ -281,7 +293,7 @@ const PointCloudListener: React.FC<IA2MapStateProps> = ({ currentData, config })
         // TODO, The polygon is out of range.
         pushHistoryWithList({ pointCloudBoxList: result });
       },
-      initRecord: () => {},
+      initRecord: () => { },
     };
   }, []);
 

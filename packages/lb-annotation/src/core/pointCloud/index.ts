@@ -47,7 +47,7 @@ interface IProps {
 }
 
 const DEFAULT_DISTANCE = 30;
-const highlightWorker = new HighlightWorker();
+const highlightWorker = new HighlightWorker({ type: 'module' });
 
 export class PointCloud {
   public renderer: THREE.WebGLRenderer;
@@ -270,6 +270,17 @@ export class PointCloud {
 
     this.AddBoxToSense(boxParams, newColor);
     this.render();
+  }
+
+  public getAllAttributeColor(boxes: IPointCloudBox[]) {
+    return boxes.reduce((acc: { [k: string]: any }, box) => {
+      acc[box.attribute] = toolStyleConverter.getColorFromConfig(
+        { attribute: box.attribute },
+        { ...this.config, attributeConfigurable: true },
+        {},
+      );
+      return acc;
+    }, {});
   }
 
   /*
@@ -598,40 +609,46 @@ export class PointCloud {
   };
 
   /**
-   * It needs to be updated after load PointCLoud's data.
+   * It needs to be updated after load PointCloud's data.
    * @param boxParams
    * @returns
    */
-  public highlightOriginPointCloud(boxParams: IPointCloudBox) {
-    if (boxParams && highlightWorker) {
-      // Temporarily turn off highlighting
+  public highlightOriginPointCloud(pointCloudBoxList?: IPointCloudBox[]) {
+    const oldPointCloud: any = this.scene.getObjectByName(this.pointCloudObjectName);
+    if (!oldPointCloud) {
+      return;
     }
 
-    // const oldPointCloud: any = this.scene.getObjectByName(this.pointCloudObjectName);
-    // if (!oldPointCloud) {
-    //   return;
-    // }
+    return new Promise((resolve) => {
+      if (window.Worker) {
+        const newPointCloudBoxList = pointCloudBoxList ? [...pointCloudBoxList] : [];
 
-    // if (window.Worker) {
-    //   const { zMin, zMax, polygonPointList } = getCuboidFromPointCloudBox(boxParams);
+        const cuboidList = newPointCloudBoxList.map((v) => getCuboidFromPointCloudBox(v));
+        const colorList = this.getAllAttributeColor(cuboidList);
+        const params = {
+          cuboidList,
+          position: oldPointCloud.geometry.attributes.position.array,
+          color: oldPointCloud.geometry.attributes.color.array,
+          colorList,
+        };
 
-    //   const params = {
-    //     boxParams,
-    //     zMin,
-    //     zMax,
-    //     polygonPointList,
-    //     position: oldPointCloud.geometry.attributes.position.array,
-    //     color: oldPointCloud.geometry.attributes.color.array,
-    //   };
+        highlightWorker.postMessage(params);
+        highlightWorker.onmessage = (e: any) => {
+          const { color } = e.data;
+          oldPointCloud.geometry.attributes.color.array = color;
+          oldPointCloud.geometry.attributes.color.needsUpdate = true;
+          resolve(color);
+          this.render();
+        };
+      }
+    });
+  }
 
-    //   highlightWorker.postMessage(params);
-    //   highlightWorker.onmessage = (e: any) => {
-    //     const { color } = e.data;
-    //     oldPointCloud.geometry.attributes.color.array = color;
-    //     oldPointCloud.geometry.attributes.color.needsUpdate = true;
-    //     this.render();
-    //   };
-    // }
+  public updateColor(color: any[]) {
+    const oldPointCloud: any = this.scene.getObjectByName(this.pointCloudObjectName);
+    oldPointCloud.geometry.attributes.color.array = color;
+    oldPointCloud.geometry.attributes.color.needsUpdate = true;
+    this.render();
   }
 
   /**

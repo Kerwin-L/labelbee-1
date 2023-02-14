@@ -61,11 +61,15 @@ class PerspectiveShiftUtils {
 
   /**
    * Get the top view's matrix4
+   * 
+   * 1. 
    * @param distance
    * @returns
    */
   public static topViewMatrix4(distance: number): TMatrix4Tuple {
-    return this.translationMatrix(0, 0, distance);
+    //  
+    // return this.translationMatrix(0, 0, distance);
+    return this.translationMatrix(-1, 0, distance);
   }
 
   /**
