@@ -55,6 +55,10 @@ ReactDOM.render(<App />, document.querySelector('#app'));
 - [LabelBee 组件库 - lb-components](./packages/lb-components/README.md)
 - [快速 DEMO 展示](./packages/lb-demo/README.md)
 
+## 贡献指南
+
+- [代码贡献指南](./docs/develop.md)
+
 ## 友情链接
 
 - [LabelBee-Client](https://github.com/open-mmlab/labelbee-client)

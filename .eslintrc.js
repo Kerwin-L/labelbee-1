@@ -14,7 +14,7 @@ module.exports = {
     es6: true,
   },
   parser: '@typescript-eslint/parser',
-  plugins: ['babel', 'jest', '@typescript-eslint', 'unicorn', 'markdown', 'prettier'],
+  // plugins: ['@typescript-eslint/eslint-plugin', 'unicorn', 'markdown', 'prettier'],
   // https://github.com/typescript-eslint/typescript-eslint/issues/46#issuecomment-470486034
   overrides: [
     {

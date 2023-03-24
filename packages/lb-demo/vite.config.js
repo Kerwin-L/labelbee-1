@@ -3,5 +3,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  assetsInclude: ["**/*.pcd"]
+  assetsInclude: ["**/*.pcd"],
+  server: {
+    port: 8899
+  }
 })

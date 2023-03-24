@@ -25,6 +25,7 @@ import StyleUtils from '../../utils/tool/StyleUtils';
 import uuid from '../../utils/uuid';
 import { BasicToolOperation, IBasicToolOperationProps } from './basicToolOperation';
 import TextAttributeClass from './textAttributeClass';
+import ImgUtils from '@/utils/ImgUtils';
 
 const TEXT_MAX_WIDTH = 164;
 
@@ -272,6 +273,8 @@ class PolygonOperation extends BasicToolOperation {
     const { upperLimitPointNum, edgeAdsorption } = this.config;
     if (upperLimitPointNum && this.drawingPointList.length >= upperLimitPointNum) {
       // 小于对应的下限点, 大于上限点无法添加
+      ImgUtils.ddd(123);
+      
       this.emit(
         'messageInfo',
         `${locale.getMessagesByLocale(EMessage.UpperLimitErrorNotice, this.lang)}${upperLimitPointNum}`,
