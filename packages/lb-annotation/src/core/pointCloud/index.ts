@@ -30,6 +30,7 @@ import { PCDLoader } from './PCDLoader';
 import { OrbitControls } from './OrbitControls';
 import { PointCloudCache } from './cache';
 import { getCuboidFromPointCloudBox } from './matrix';
+import { PointCloudSegmentOperation } from './segmentation';
 
 interface IOrthographicCamera {
   left: number;
@@ -103,6 +104,8 @@ export class PointCloud {
    */
   private highlightPCDSrc?: string;
 
+  private segmentOperation: PointCloudSegmentOperation;
+
   constructor({
     container,
     noAppend,
@@ -134,7 +137,9 @@ export class PointCloud {
     this.initCamera();
 
     this.scene = new THREE.Scene();
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls = new OrbitControls(this.camera, this.container);
+    this.controls.enablePan = false;
+
     this.pcdLoader = new PCDLoader();
 
     this.axesHelper = new THREE.AxesHelper(1000);
@@ -151,7 +156,45 @@ export class PointCloud {
     this.init();
 
     this.cacheInstance = PointCloudCache.getInstance();
+
+    this.segmentOperation = new PointCloudSegmentOperation({
+      dom: this.container,
+      render: (...arg: any[]) => this.render(...arg),
+      getPointsInPolygon: this.getPointsInPolygon.bind(this),
+    });
+    this.segmentOperation.addMorePoint(this.scene);
+
+    document.addEventListener('keydown', this.keydown);
+    document.addEventListener('keyup', this.keyup);
   }
+
+  public keydown = (e: KeyboardEvent) => {
+    // alert(`type: ${typeof e.key}.${e.key}:-`);
+    switch (e.key) {
+      case ' ':
+        this.controls.enablePan = true;
+        this.segmentOperation.setForbidOperation(true);
+        break;
+
+      default: {
+        break;
+      }
+    }
+  };
+
+  public keyup = (e: KeyboardEvent) => {
+    switch (e.key) {
+      case ' ':
+        this.controls.enablePan = false;
+        this.segmentOperation.setForbidOperation(false);
+
+        break;
+
+      default: {
+        break;
+      }
+    }
+  };
 
   get DEFAULT_INIT_CAMERA_POSITION() {
     return new THREE.Vector3(-0.01, 0, 10);
@@ -689,7 +732,7 @@ export class PointCloud {
     });
 
     pointsMaterial.onBeforeCompile = this.overridePointShader;
-    pointsMaterial.size = 1.2;
+    pointsMaterial.size = 5;
 
     if (radius) {
       // @ts-ignore
@@ -697,7 +740,7 @@ export class PointCloud {
     }
 
     this.pointsUuid = points.uuid;
-    points.material = pointsMaterial;
+    // points.material = pointsMaterial;
     this.filterZAxisPoints(points);
 
     this.scene.add(points);
@@ -958,8 +1001,8 @@ export class PointCloud {
 
   public getSensesPointZAxisInPolygon(polygon: IPolygonPoint[], zScope?: [number, number], intelligentFit?: boolean) {
     const points = this.scene.children.find((i) => i.uuid === this.pointsUuid) as THREE.Points;
-    let minZ = 0;
-    let maxZ = 0;
+    let minZ = -1;
+    let maxZ = 1;
     let count = 0; // The count of scope
     let zCount = 0; // The Count of Polygon range
     let fittedCoordinates: ICoordinate[] = []; // Vertex coordinates after fitting(ThreeJs coordinates)
@@ -1478,7 +1521,73 @@ export class PointCloud {
     this.render();
   };
 
-  public render() {
+  public getPointsInPolygon(originPolygon: number[][]) {
+    console.time("GetPolygon")
+    
+    const polygon = [];
+
+    for (let i = 0; i < originPolygon.length; i += 1) {
+      polygon.push({
+        x: originPolygon[i][0],
+        y: originPolygon[i][1],
+      });
+    }
+
+    const originPoints = this.scene.getObjectByName(this.pointCloudObjectName) as THREE.Points;
+
+    const cloudDataArrayLike = originPoints?.geometry?.attributes?.position?.array;
+    if (cloudDataArrayLike) {
+      const len = cloudDataArrayLike.length;
+      let count = 0;
+      const vertices = [];
+
+      for (let i = 0; i < len; i += 3) {
+        const vector3d = new THREE.Vector3(cloudDataArrayLike[i], cloudDataArrayLike[i + 1], cloudDataArrayLike[i + 2]);
+
+        vector3d.project(this.camera);
+        const projection = { x: 0, y: 0 };
+        projection.x = Math.round((vector3d.x * this.containerWidth) / 2 + this.containerWidth / 2);
+        projection.y = Math.round((-vector3d.y * this.containerHeight) / 2 + this.containerHeight / 2);
+
+        // const isIn = pointInPolyWindingNumber(
+        //   [projection.x, projection.y],
+        //   polygon.reduce((acc, cur) => [...acc, cur.x, cur.y], []),
+        // );
+        const isIn = isInPolygon(projection, polygon);
+
+        if (isIn) {
+          // console.log('1');
+          count++;
+          vertices.push(cloudDataArrayLike[i], cloudDataArrayLike[i + 1], cloudDataArrayLike[i + 2]);
+        }
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      // 创建一个简单的矩形. 在这里我们左上和右下顶点被复制了两次。
+      // 因为在两个三角面片里，这两个顶点都需要被用到。
+      const verticesArray = new Float32Array(vertices);
+
+      // itemSize = 3 因为每个顶点都是一个三元组。
+      geometry.setAttribute('position', new THREE.BufferAttribute(verticesArray, 3));
+
+      const pointsMaterial = new THREE.PointsMaterial({ color: 0xff0000, size: 10 });
+
+      const newPoints = new THREE.Points(geometry, pointsMaterial);
+
+      this.scene.add(newPoints);
+      this.render();
+
+      console.log('count', count, vertices);
+      console.timeEnd("GetPolygon");
+
+    }
+  }
+
+  public render(isSegment = false) {
+    if (isSegment) {
+      this.segmentOperation.render({ scene: this.scene, camera: this.camera });
+      return;
+    }
     this.renderer.render(this.scene, this.camera);
   }
 }
