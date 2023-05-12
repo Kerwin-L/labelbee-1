@@ -613,12 +613,45 @@ export class PointCloud {
   public renderPointCloud(points: THREE.Points, radius?: number) {
     points.name = this.pointCloudObjectName;
 
-    const pointsMaterial = new THREE.PointsMaterial({
-      vertexColors: true,
+    // const pointsMaterial = new THREE.PointsMaterial({
+    //   vertexColors: true,
+    // });
+    // // const pointsMaterial = new THREE.PointsMaterial({ color: 0x888888, });
+
+    // pointsMaterial.onBeforeCompile = this.overridePointShader;
+    // pointsMaterial.size = 1.2;
+
+    const material = new THREE.ShaderMaterial({
+      vertexShader: `
+      // 定义属性，包含每个顶点的维度
+      attribute vec3 dimensions;
+      varying vec3 vDimensions;
+
+      void main() {
+          // 将顶点坐标传递给片段着色器
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+          // 将维度传递给片段着色器
+          vDimensions = dimensions;
+      }`,
+      fragmentShader: `
+      varying vec3 vDimensions;
+
+      void main() {
+          // 根据维度计算颜色
+          vec3 color = vec3(vDimensions.x, vDimensions.y, vDimensions.z);
+
+          // 输出最终的颜色
+          gl_FragColor = vec4(color, 1.0);
+      }`,
     });
 
-    pointsMaterial.onBeforeCompile = this.overridePointShader;
-    pointsMaterial.size = this.pointsMaterialSize;
+    // pointsMaterial.onBeforeCompile = this.overridePointShader;
+    // pointsMaterial.size = this.pointsMaterialSize;
+    // 设置材质属性，启用GPU实例化
+    material.defines = {
+      USE_INSTANCING: '',
+    };
 
     if (radius) {
       // @ts-ignore
@@ -626,7 +659,7 @@ export class PointCloud {
     }
 
     this.pointsUuid = points.uuid;
-    points.material = pointsMaterial;
+    points.material = material;
     this.filterZAxisPoints(points);
 
     this.scene.add(points);
@@ -658,7 +691,7 @@ export class PointCloud {
     const { points, color } = (await this.cacheInstance.loadPCDFile(src)) as any;
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(points, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(color, 3));
+    geometry.setAttribute('dimensions', new THREE.BufferAttribute(color, 3));
 
     const newPoints = new THREE.Points(geometry);
     this.renderPointCloud(newPoints, radius);
@@ -685,7 +718,7 @@ export class PointCloud {
         const params = {
           cuboidList,
           position: oldPointCloud.geometry.attributes.position.array,
-          color: oldPointCloud.geometry.attributes.color.array,
+          color: oldPointCloud.geometry.attributes.dimensions.array,
           colorList,
         };
 
@@ -717,7 +750,9 @@ export class PointCloud {
           this.highlightPCDSrc = undefined;
 
           colorAttribute.needsUpdate = true;
-          oldPointCloud.geometry.setAttribute('color', colorAttribute);
+
+          oldPointCloud.geometry.setAttribute('dimensions', colorAttribute);
+          oldPointCloud.geometry.attributes.dimensions.needsUpdate = true;
           resolve(color);
           this.render();
         };
