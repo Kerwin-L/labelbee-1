@@ -290,6 +290,12 @@ export class PointCloudAnnotation implements IPointCloudAnnotationOperation {
     this.addPointListOnTopView(result);
   }
 
+  public focusBox(box: IPointCloudBox) {
+    // 1. Get the topView polygon by box
+    // 2. Polygon2dOperation set the polygon to center and return { currentPos, zoom }
+    // 3. Update the camera of topViewPointCloud
+  }
+
   /**
    * switch to chosen canvas。
    *

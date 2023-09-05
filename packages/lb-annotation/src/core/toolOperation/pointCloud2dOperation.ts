@@ -346,7 +346,19 @@ class PointCloud2dOperation extends PolygonOperation {
       y: v.pointList[0]?.y ?? 0,
     }));
 
-    const nextSelectedResult = CommonToolUtils.getNextSelectedRectID(sortList, sort, this.selectedID);
+    let nextSelectedResult;
+
+    if (this.pointCloudConfig.trackConfigurable === true) {
+      // TrackID Sort.
+      nextSelectedResult = CommonToolUtils.getNextSelectedIDByTrackID({
+        dataList: sortList,
+        sort,
+        selectedID: this.selectedID,
+      });
+    } else {
+      nextSelectedResult = CommonToolUtils.getNextSelectedRectID(sortList, sort, this.selectedID);
+    }
+
     if (nextSelectedResult) {
       this.setSelectedIDs([nextSelectedResult.id]);
       this.render();

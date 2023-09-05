@@ -134,7 +134,7 @@ export const getMockResult = (tool) => {
   }
 
   if (tool === 'pointCloudTool') {
-    return '{}';
+    return '{"valid":true,"step_1":{"dataSourceStep":0,"resultPolygon":[],"resultLine":[],"resultPoint":[],"segmentation":[],"toolName":"pointCloudTool","result":[{"center":{"x":-15.953472417449404,"y":-4.1796427180615865,"z":0.744205305352807},"width":4.081205273095632,"height":1.8632086746703458,"depth":1.387576938122511,"rotation":0.0553119157263816,"id":"pkGNIO2p","attribute":"类别1","valid":true,"count":2940,"trackID":1},{"center":{"x":-14.83095720801071,"y":0.5741451107597446,"z":-0.012479183496907353},"width":3.554356290364579,"height":3.0061266699052704,"depth":0.05431113949045539,"rotation":0.45106965598850657,"id":"nVI4cRkZ","attribute":"类别1","valid":true,"count":936,"trackID":2},{"center":{"x":-8.778045638899366,"y":-2.4116211739420703,"z":-0.46326224878430367},"width":3.706569409099857,"height":4.090499870187207,"depth":1.0243014511466026,"rotation":0.11408577916814217,"id":"2HxSzJbu","attribute":"类别1","valid":true,"count":6827,"trackID":3},{"center":{"x":-9.422765260409673,"y":-7.886556966594151,"z":4.315565627068281},"width":3.5107477161003104,"height":3.537415925184312,"depth":8.451984819471836,"rotation":5.93492581250248,"id":"nVqkTtRv","attribute":"类别1","valid":true,"count":17879,"trackID":4}]}}';
     // return pointCloudResult;
   }
 

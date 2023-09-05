@@ -837,9 +837,9 @@ export class PointCloud extends EventListener {
     return {
       vertexShader: `
       attribute vec3 dimensions;
-      varying vec3 vDimensions;
-      uniform float pointSize;
       attribute float visibility;
+      uniform float pointSize;
+      varying vec3 vDimensions;
 
       void main() {
         // Pass the vertex coordinates to the fragment shader

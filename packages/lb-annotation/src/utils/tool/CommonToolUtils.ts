@@ -125,6 +125,32 @@ export default class CommonToolUtils {
     return sortRectList[(i + 1) % len];
   }
 
+  public static getNextSelectedIDByTrackID({
+    dataList,
+    sort = ESortDirection.ascend,
+    selectedID,
+  }: {
+    dataList: Array<{ [key: string]: any; trackID?: number }>;
+    sort: ESortDirection;
+    selectedID?: string;
+  }) {
+    let sign = 1;
+    if (sort === ESortDirection.descend) {
+      sign = -1;
+    }
+
+    const sortRectList = dataList.sort((a, b) => {
+      if (!a.trackID || !b.trackID) {
+        return 0;
+      }
+
+      return sign * (a.trackID - b.trackID);
+    });
+    const i = sortRectList.findIndex((v) => v.id === selectedID);
+    const len = sortRectList.length;
+    return sortRectList[(i + 1) % len];
+  }
+
   public static getNextSelectedRectIDByEvent(pointList: point[], event: KeyboardEvent, selectedID?: string) {
     const sortDirection = event.shiftKey ? ESortDirection.descend : ESortDirection.ascend;
     return this.getNextSelectedRectID(pointList, sortDirection, selectedID);

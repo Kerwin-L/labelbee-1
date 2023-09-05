@@ -13,3 +13,5 @@ jobs:
       run: npm run build:type
     - name: Run ESLint
       run:  npm run lint
+    - name: Create Status Check
+      run: gh api "repos/:owner/:repo/statuses/$GITHUB_SHA" -X POST -F "state=success" -F "description=All checks passed"
