@@ -105,7 +105,6 @@ class PointCloudSegmentOperation {
     if (this.isForbid || this.store.orbiting === true || this.store.checkMode) {
       return;
     }
-
     if (this.baseMouseDown(iev)) {
       return;
     }

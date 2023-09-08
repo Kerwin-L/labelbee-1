@@ -716,8 +716,28 @@ class PointCloudStore {
     this.emit('reRender3d');
   }
 
+  public getHighlightAttribute(attribute: string) {
+    const list = [];
+    this.segmentData.forEach((seg) => {
+      if (seg.attribute === attribute) {
+        list.push(seg.indexes);
+      }
+    });
+    return list;
+  }
+
   public setAttribute(attribute: string) {
     this.currentAttribute = attribute;
+  }
+
+  public filterPoints(indexes: number[]) {
+    const pointsArray = this.originPoints;
+
+    const points: number[] = [];
+    indexes.forEach((index) => {
+      points.push(pointsArray[index * 3], pointsArray[index * 3 + 1], pointsArray[index * 3 + 2]);
+    });
+    return points;
   }
 }
 
